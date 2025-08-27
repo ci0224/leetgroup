@@ -12,6 +12,22 @@ jobs:
     steps:
       - name: Call Cron Endpoint
         run: |
-          curl -X POST ${{ secrets.VERCEL_APP_URL }}/api/cron/update \
+          echo "🚀 Starting daily LeetCode stats update..."
+          echo "Target URL: ${{ secrets.VERCEL_APP_URL }}/api/cron/update"
+          
+          response=$(curl -X POST ${{ secrets.VERCEL_APP_URL }}/api/cron/update \
             -H "Content-Type: application/json" \
-            -w "\nStatus: %{http_code}\n"
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -w "%{http_code}" \
+            -s -o response.json)
+          
+          echo "📊 Response Status: $response"
+          echo "📄 Response Body:"
+          cat response.json
+          
+          if [ "$response" -eq 200 ]; then
+            echo "✅ Daily update completed successfully!"
+          else
+            echo "❌ Daily update failed with status: $response"
+            exit 1
+          fi
