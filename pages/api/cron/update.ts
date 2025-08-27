@@ -85,11 +85,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Simple authentication for cron endpoint
-  const authHeader = req.headers.authorization;
-  const expectedAuth = process.env.CRON_SECRET;
-  
-  if (expectedAuth && authHeader !== `Bearer ${expectedAuth}`) {
+  // Basic protection: check for cron secret (optional)
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && req.headers.authorization !== `Bearer ${cronSecret}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
