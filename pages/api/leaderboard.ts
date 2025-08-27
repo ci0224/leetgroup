@@ -115,6 +115,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       leaderboard: leaderboardData,
       timestamp: new Date().toISOString(),
+      date: {
+        yesterdayLAX: yesterdayDate,
+        displayDate: new Date(yesterdayDate + 'T00:00:00-07:00').toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          timeZone: 'America/Los_Angeles'
+        })
+      },
       scoreSystem: {
         easy: 2,
         medium: 3,

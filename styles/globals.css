@@ -479,6 +479,23 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.date-info {
+  margin: 1rem 0;
+}
+
+.date-display {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4f46e5;
+  margin-bottom: 0.25rem;
+}
+
+.date-subtitle {
+  font-size: 0.75rem;
+  color: #666;
+  font-style: italic;
+}
+
 .score-info {
   background: #f3f4f6;
   border-radius: 8px;

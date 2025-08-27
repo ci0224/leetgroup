@@ -16,13 +16,16 @@ interface LeaderboardEntry {
 interface LeaderboardData {
   leaderboard: LeaderboardEntry[];
   timestamp: string;
+  date: {
+    yesterdayLAX: string;
+    displayDate: string;
+  };
   scoreSystem: {
     easy: number;
     medium: number;
     hard: number;
     formula: string;
   };
-
 }
 
 export default function Leaderboard() {
@@ -110,11 +113,16 @@ export default function Leaderboard() {
     <div className="leaderboard">
       <div className="leaderboard-header">
         <h2>🏆 Yesterday&apos;s Leaderboard</h2>
+        <div className="date-info">
+          <div className="date-display">
+            📅 {data.date?.displayDate || 'Loading date...'}
+          </div>
+          <div className="date-subtitle">
+            ({data.date?.yesterdayLAX || 'YYYY-MM-DD'} LAX timezone)
+          </div>
+        </div>
         <div className="score-info">
           <span className="score-formula">Scoring: {data.scoreSystem.formula}</span>
-          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#666' }}>
-            Based on problems solved yesterday (LAX timezone)
-          </div>
         </div>
       </div>
 
