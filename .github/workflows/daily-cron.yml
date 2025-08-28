@@ -5,6 +5,9 @@ on:
     # Run at 7:00 AM UTC (approximately 00:00 AM LAX)
     - cron: '0 7 * * *'
   workflow_dispatch: # Allow manual triggering
+  push:
+    branches: [ main ]
+    paths: [ '.github/workflows/daily-cron.yml' ] # Run when workflow is updated
 
 jobs:
   update-stats:
@@ -14,6 +17,12 @@ jobs:
         run: |
           echo "🚀 Starting daily LeetCode stats update..."
           echo "Target URL: ${{ secrets.VERCEL_APP_URL }}/api/cron/update"
+          echo "Secrets check: VERCEL_APP_URL=${{ secrets.VERCEL_APP_URL != '' }}, CRON_SECRET=${{ secrets.CRON_SECRET != '' }}"
+          
+          if [ -z "${{ secrets.VERCEL_APP_URL }}" ]; then
+            echo "❌ VERCEL_APP_URL secret is not set"
+            exit 1
+          fi
           
           response=$(curl -X POST ${{ secrets.VERCEL_APP_URL }}/api/cron/update \
             -H "Content-Type: application/json" \
@@ -29,5 +38,6 @@ jobs:
             echo "✅ Daily update completed successfully!"
           else
             echo "❌ Daily update failed with status: $response"
+            cat response.json
             exit 1
           fi
