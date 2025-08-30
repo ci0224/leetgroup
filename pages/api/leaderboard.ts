@@ -2,12 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/db';
 import { users, dailyProgress } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { getYesterdayLAX } from '@/lib/dailyProgress';
+import { getLAXDate } from '@/lib/dailyProgress';
 
 interface LeaderboardEntry {
   displayName: string;
   username: string | null;
-  yesterday: {
+  past24h: {
     easy: number;
     medium: number;
     hard: number;
@@ -59,11 +59,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Get yesterday's date in LAX timezone
-    const yesterdayDate = getYesterdayLAX();
+    // Get today's date in LAX timezone (for past 24h progress)
+    const todayDate = getLAXDate();
 
-    // Get all users who have daily progress for yesterday
-    const yesterdayProgressData = await db.select({
+    // Get all users who have daily progress for today (past 24h)
+    const todayProgressData = await db.select({
       userId: dailyProgress.userId,
       easy: dailyProgress.easy,
       medium: dailyProgress.medium,
@@ -74,20 +74,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
     .from(dailyProgress)
     .innerJoin(users, eq(dailyProgress.userId, users.id))
-    .where(eq(dailyProgress.date, yesterdayDate));
+    .where(eq(dailyProgress.date, todayDate));
 
     const leaderboardData: LeaderboardEntry[] = [];
 
-    for (const progress of yesterdayProgressData) {
+    for (const progress of todayProgressData) {
       const total = progress.easy + progress.medium + progress.hard;
       const score = calculateScore(progress.easy, progress.medium, progress.hard);
 
-      // Only include users who solved at least one problem yesterday
+      // Only include users who solved at least one problem in the past 24h
       if (total > 0) {
         leaderboardData.push({
           displayName: progress.displayName,
           username: progress.isPublic ? progress.username : null,
-          yesterday: {
+          past24h: {
             easy: progress.easy,
             medium: progress.medium,
             hard: progress.hard,
@@ -101,10 +101,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Sort by score (descending), then by total problems (descending)
     leaderboardData.sort((a, b) => {
-      if (b.yesterday.score !== a.yesterday.score) {
-        return b.yesterday.score - a.yesterday.score;
+      if (b.past24h.score !== a.past24h.score) {
+        return b.past24h.score - a.past24h.score;
       }
-      return b.yesterday.total - a.yesterday.total;
+      return b.past24h.total - a.past24h.total;
     });
 
     // Assign ranks
@@ -116,14 +116,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       leaderboard: leaderboardData,
       timestamp: new Date().toISOString(),
       date: {
-        yesterdayLAX: yesterdayDate,
-        displayDate: new Date(yesterdayDate + 'T00:00:00-07:00').toLocaleDateString('en-US', { 
+        todayLAX: todayDate,
+        displayDate: new Date(todayDate + 'T00:00:00-07:00').toLocaleDateString('en-US', { 
           weekday: 'long', 
           year: 'numeric', 
           month: 'long', 
           day: 'numeric',
           timeZone: 'America/Los_Angeles'
-        })
+        }),
+        description: "Problems solved since yesterday's update"
       },
       scoreSystem: {
         easy: 2,

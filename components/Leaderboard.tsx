@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 interface LeaderboardEntry {
   displayName: string;
   username: string | null;
-  yesterday: {
+  past24h: {
     easy: number;
     medium: number;
     hard: number;
@@ -17,8 +17,9 @@ interface LeaderboardData {
   leaderboard: LeaderboardEntry[];
   timestamp: string;
   date: {
-    yesterdayLAX: string;
+    todayLAX: string;
     displayDate: string;
+    description: string;
   };
   scoreSystem: {
     easy: number;
@@ -80,7 +81,7 @@ export default function Leaderboard() {
   if (loading) {
     return (
       <div className="leaderboard">
-        <h2>Yesterday&apos;s Leaderboard</h2>
+        <h2>Daily Leaderboard</h2>
         <div className="loading">Loading leaderboard...</div>
       </div>
     );
@@ -89,7 +90,7 @@ export default function Leaderboard() {
   if (error) {
     return (
       <div className="leaderboard">
-        <h2>Yesterday&apos;s Leaderboard</h2>
+        <h2>Daily Leaderboard</h2>
         <div className="error-message">{error}</div>
         <button onClick={fetchLeaderboard} className="retry-button">
           Retry
@@ -101,9 +102,9 @@ export default function Leaderboard() {
   if (!data || data.leaderboard.length === 0) {
     return (
       <div className="leaderboard">
-        <h2>Yesterday&apos;s Leaderboard</h2>
+        <h2>Daily Leaderboard</h2>
         <div className="no-data">
-          No activity yesterday. Be the first to solve problems and claim the top spot!
+          No problems solved today. Be the first to solve problems and claim the top spot!
         </div>
       </div>
     );
@@ -112,13 +113,13 @@ export default function Leaderboard() {
   return (
     <div className="leaderboard">
       <div className="leaderboard-header">
-        <h2>🏆 Yesterday&apos;s Leaderboard</h2>
+        <h2>🏆 Daily Leaderboard</h2>
         <div className="date-info">
           <div className="date-display">
             📅 {data.date?.displayDate || 'Loading date...'}
           </div>
           <div className="date-subtitle">
-            ({data.date?.yesterdayLAX || 'YYYY-MM-DD'} LAX timezone)
+            {data.date?.description || 'Problems solved since yesterday\'s update'} ({data.date?.todayLAX || 'YYYY-MM-DD'} LAX timezone)
           </div>
         </div>
         <div className="score-info">
@@ -158,23 +159,23 @@ export default function Leaderboard() {
             </div>
             
             <div className="stats-col easy-stat">
-              {entry.yesterday.easy}
+              {entry.past24h.easy}
             </div>
             
             <div className="stats-col medium-stat">
-              {entry.yesterday.medium}
+              {entry.past24h.medium}
             </div>
             
             <div className="stats-col hard-stat">
-              {entry.yesterday.hard}
+              {entry.past24h.hard}
             </div>
             
             <div className="total-col">
-              {entry.yesterday.total}
+              {entry.past24h.total}
             </div>
             
             <div className="score-col">
-              <strong>{entry.yesterday.score}</strong>
+              <strong>{entry.past24h.score}</strong>
             </div>
           </div>
         ))}

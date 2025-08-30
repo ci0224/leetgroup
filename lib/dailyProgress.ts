@@ -5,7 +5,7 @@ import { eq, desc, and } from 'drizzle-orm';
 /**
  * Get the current LAX date in YYYY-MM-DD format
  */
-function getLAXDate(date: Date = new Date()): string {
+export function getLAXDate(date: Date = new Date()): string {
   const laxFormatter = new Intl.DateTimeFormat('en-CA', { 
     timeZone: 'America/Los_Angeles',
     year: 'numeric',
@@ -16,12 +16,12 @@ function getLAXDate(date: Date = new Date()): string {
 }
 
 /**
- * Calculate and store daily progress for a user
+ * Calculate and store daily progress for a user based on consecutive daily fetches
  */
 export async function calculateDailyProgress(userId: number): Promise<void> {
   const today = getLAXDate();
   
-  // Get user's latest 2 stats entries
+  // Get user's latest 2 stats entries (today's and previous day's fetches)
   const latestStats = await db.select()
     .from(stats)
     .where(eq(stats.userId, userId))
@@ -32,10 +32,11 @@ export async function calculateDailyProgress(userId: number): Promise<void> {
     return; // No stats to calculate from
   }
 
-  const currentStats = latestStats[0];
-  const previousStats = latestStats.length > 1 ? latestStats[1] : null;
+  const currentStats = latestStats[0]; // Today's fetch
+  const previousStats = latestStats.length > 1 ? latestStats[1] : null; // Previous fetch
 
-  // Calculate daily progress
+  // Calculate problems solved since the last fetch
+  // If no previous stats, this represents their first day (all problems solved "today")
   const dailyEasy = previousStats ? Math.max(0, currentStats.easy - previousStats.easy) : currentStats.easy;
   const dailyMedium = previousStats ? Math.max(0, currentStats.medium - previousStats.medium) : currentStats.medium;
   const dailyHard = previousStats ? Math.max(0, currentStats.hard - previousStats.hard) : currentStats.hard;
